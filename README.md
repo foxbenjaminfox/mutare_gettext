@@ -1,6 +1,6 @@
 # mutare_gettext
 
-A [Mutare](https://github.com/) **extension** that teaches mutation testing to read
+A [Mutare](https://github.com/foxbenjaminfox/mutare) **extension** that teaches mutation testing to read
 [Gettext](https://hexdocs.pm/gettext). It is an *extension*, not a mutator: it produces no mutations
 of its own — it only makes Mutare's **built-in** mutators land correctly on a `use Gettext` module,
 without poisoning the single metamutant build.
@@ -54,3 +54,7 @@ mix deps.get
 mix test
 mix check      # format --check-formatted, credo, dialyzer
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE).

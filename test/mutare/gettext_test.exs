@@ -91,10 +91,10 @@ defmodule Mutare.GettextTest do
     @mutators [Mutare.Mutators.StringLiteral, Mutare.Mutators.Arithmetic]
 
     test "skips the msgids but mutates the runtime count and bindings" do
-      {_with_src, with_sites, _} =
+      %Mutare.Transform.Result{mutants: with_sites} =
         Mutare.transform_string(@source, mutators: @mutators, extensions: [Extension])
 
-      {_without_src, without_sites, _} =
+      %Mutare.Transform.Result{mutants: without_sites} =
         Mutare.transform_string(@source, mutators: @mutators)
 
       # Without the extension the bare gettext/ngettext calls don't resolve, so the msgids are
