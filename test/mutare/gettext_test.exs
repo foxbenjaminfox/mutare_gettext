@@ -15,6 +15,17 @@ defmodule Mutare.GettextTest do
       assert Macro.to_string(directive) == "import Gettext.Macros"
     end
 
+    test "the takeover is args-independent: argless and deprecated `otp_app:` forms too" do
+      # The moduledoc promises "every `use Gettext` line" — a form without `backend:` (or the
+      # deprecated backend-defining `otp_app:` form) still gets the import, harmlessly.
+      for args <- [[], [[otp_app: :my_app]]] do
+        assert %Expansion{directives: [directive], behaviours: []} =
+                 Extension.expand_use(Gettext, args, %{module: MyApp.Gettext, opts: []})
+
+        assert Macro.to_string(directive) == "import Gettext.Macros"
+      end
+    end
+
     test "declines any other `use`" do
       assert Extension.expand_use(Phoenix, [], %{module: MyApp.Web, opts: []}) == :decline
       assert Extension.expand_use(GenServer, [], %{module: MyApp.Server, opts: []}) == :decline
@@ -67,6 +78,34 @@ defmodule Mutare.GettextTest do
         assert positions ==
                  List.duplicate(:skip, arity - n_expr) ++ List.duplicate(:expression, n_expr),
                "#{name}/#{arity} mutates a non-trailing position: #{inspect(positions)}"
+      end
+    end
+
+    test "every macro left to the :skip baseline is genuinely runtime-arg-free" do
+      # The converse of the test above: an exported macro *without* an override must have nothing
+      # to mutate, or the derivation has silently missed a family/arity Gettext exports.
+      covered =
+        MapSet.new(
+          for {Gettext.Macros, name, arity, _} when is_integer(arity) <- Extension.macro_routes(),
+              do: {name, arity}
+        )
+
+      for {name, arity} <- Gettext.Macros.__info__(:macros),
+          not MapSet.member?(covered, {name, arity}) do
+        string = Atom.to_string(name)
+
+        # Extraction markers (`_noop`) and comments take only compile-time literals. The only
+        # other all-literal form is the bindings-less arity of a non-plural family: a plural
+        # macro carries a runtime `count` at every arity, so it may never fall to the baseline,
+        # and the bindings-less form's `+ bindings` sibling must be covered.
+        unless String.contains?(string, "_noop") or name == :gettext_comment do
+          refute String.contains?(string, "ngettext"),
+                 "#{name}/#{arity} carries a runtime count but fell to the :skip baseline"
+
+          assert MapSet.member?(covered, {name, arity + 1}),
+                 "#{name}/#{arity + 1} (its `+ bindings` form) has no override — " <>
+                   "the derivation missed it"
+        end
       end
     end
   end
