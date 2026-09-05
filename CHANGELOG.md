@@ -14,7 +14,7 @@ Initial public release.
 - **`use Gettext` expansion override** (`Mutare.UseExpansion`): injects the
   `import Gettext.Macros` that Gettext's `__using__` would, so bare
   `gettext`/`ngettext` calls resolve inside Mutare's scan instead of raising.
-- **Macro-argument routing** (`Mutare.MacroRouting`): a whole-module `:skip`
+- **Macro-argument routing** (`Mutare.CallRouting`): a whole-module `:raw`
   baseline over `Gettext.Macros` — message ids, plural ids, domains, contexts,
   and backends stay compile-time literals, never poisoning the metamutant
   build — with per-arity overrides that route the runtime `count` and

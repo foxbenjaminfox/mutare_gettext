@@ -32,22 +32,22 @@ defmodule Mutare.GettextTest do
     end
   end
 
-  describe "macro_routes/0" do
+  describe "call_routes/0" do
     test "skips everything by default, then mutates the runtime count/bindings positions" do
-      entries = Extension.macro_routes()
+      entries = Extension.call_routes()
 
-      # The whole-module :skip baseline keeps every msgid/domain/context/backend a literal.
-      assert {Gettext.Macros, :*, :skip} in entries
+      # The whole-module :raw baseline keeps every msgid/domain/context/backend a literal.
+      assert {Gettext.Macros, :*, :raw} in entries
 
       # Per-position overrides route the runtime count/bindings :expression while the leading
-      # literal positions stay :skip — spot-checks across the singular, plural, and backend forms.
-      assert {Gettext.Macros, :gettext, 2, [:skip, :expression]} in entries
-      assert {Gettext.Macros, :ngettext, 3, [:skip, :skip, :expression]} in entries
-      assert {Gettext.Macros, :ngettext, 4, [:skip, :skip, :expression, :expression]} in entries
-      assert {Gettext.Macros, :dgettext, 3, [:skip, :skip, :expression]} in entries
+      # literal positions stay :raw — spot-checks across the singular, plural, and backend forms.
+      assert {Gettext.Macros, :gettext, 2, [:raw, :expression]} in entries
+      assert {Gettext.Macros, :ngettext, 3, [:raw, :raw, :expression]} in entries
+      assert {Gettext.Macros, :ngettext, 4, [:raw, :raw, :expression, :expression]} in entries
+      assert {Gettext.Macros, :dgettext, 3, [:raw, :raw, :expression]} in entries
 
       assert {Gettext.Macros, :dpngettext_with_backend, 7,
-              [:skip, :skip, :skip, :skip, :skip, :expression, :expression]} in entries
+              [:raw, :raw, :raw, :raw, :raw, :expression, :expression]} in entries
     end
 
     test "every override names a real Gettext.Macros macro and never mutates a literal position" do
@@ -55,7 +55,7 @@ defmodule Mutare.GettextTest do
 
       overrides =
         Enum.filter(
-          Extension.macro_routes(),
+          Extension.call_routes(),
           &match?({Gettext.Macros, _, arity, _} when is_integer(arity), &1)
         )
 
@@ -76,17 +76,17 @@ defmodule Mutare.GettextTest do
         assert length(positions) == arity
 
         assert positions ==
-                 List.duplicate(:skip, arity - n_expr) ++ List.duplicate(:expression, n_expr),
+                 List.duplicate(:raw, arity - n_expr) ++ List.duplicate(:expression, n_expr),
                "#{name}/#{arity} mutates a non-trailing position: #{inspect(positions)}"
       end
     end
 
-    test "every macro left to the :skip baseline is genuinely runtime-arg-free" do
+    test "every macro left to the :raw baseline is genuinely runtime-arg-free" do
       # The converse of the test above: an exported macro *without* an override must have nothing
       # to mutate, or the derivation has silently missed a family/arity Gettext exports.
       covered =
         MapSet.new(
-          for {Gettext.Macros, name, arity, _} when is_integer(arity) <- Extension.macro_routes(),
+          for {Gettext.Macros, name, arity, _} when is_integer(arity) <- Extension.call_routes(),
               do: {name, arity}
         )
 
@@ -100,7 +100,7 @@ defmodule Mutare.GettextTest do
         # and the bindings-less form's `+ bindings` sibling must be covered.
         unless String.contains?(string, "_noop") or name == :gettext_comment do
           refute String.contains?(string, "ngettext"),
-                 "#{name}/#{arity} carries a runtime count but fell to the :skip baseline"
+                 "#{name}/#{arity} carries a runtime count but fell to the :raw baseline"
 
           assert MapSet.member?(covered, {name, arity + 1}),
                  "#{name}/#{arity + 1} (its `+ bindings` form) has no override — " <>
@@ -141,7 +141,7 @@ defmodule Mutare.GettextTest do
       assert count(without_sites, :string) > 0
 
       # With the extension the `import Gettext.Macros` surfaces, the calls resolve, and the msgids
-      # (singular, plural — all compile-time literals) are routed :skip: not one StringLiteral site.
+      # (singular, plural — all compile-time literals) are routed :raw: not one StringLiteral site.
       assert count(with_sites, :string) == 0
 
       # But the runtime positions ARE mutated even with the extension: the bindings value `count + 1`

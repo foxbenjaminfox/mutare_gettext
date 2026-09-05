@@ -36,12 +36,12 @@ The extension fixes both via Mutare's two extension capability behaviours:
 
 - **`Mutare.UseExpansion`** (`expand_use/3`) takes over every `use Gettext` and injects
   `import Gettext.Macros`, so the bare calls resolve.
-- **`Mutare.MacroRouting`** (`macro_routes/0`) routes each macro's arguments per position: the **compile-time literals** (message
-  id, plural id, domain, context, backend) are `:skip` (never mutated → no poison), while the
+- **`Mutare.CallRouting`** (`call_routes/0`) routes each macro's arguments per position: the **compile-time literals** (message
+  id, plural id, domain, context, backend) are `:raw` (never mutated → no poison), while the
   **runtime** arguments — the `ngettext` plural `count` and the interpolation `bindings` — are
   `:expression`, so a stale plural threshold or wrong interpolation value still gets caught.
 
-This is a whole-module `:skip` baseline plus a per-position override for every arity carrying a
+This is a whole-module `:raw` baseline plus a per-position override for every arity carrying a
 `count`/`bindings`. The overrides are *derived* from the Gettext macro families (so a position
 can't drift); the package's test cross-checks each one against the real `Gettext.Macros`.
 
