@@ -10,7 +10,7 @@ defmodule Mutare.Gettext.MixProject do
       version: @version,
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      description: "Mutation-testing support for Gettext — a Mutare extension.",
+      description: "Mutare extension for Gettext",
       package: package(),
       lockfile: System.get_env("MIX_LOCKFILE", "mix.lock"),
       deps: deps(),
@@ -39,7 +39,7 @@ defmodule Mutare.Gettext.MixProject do
 
   defp deps do
     [
-      {:mutare, "~> 0.1", path: "../mutare"},
+      {:mutare, "~> 0.1"},
       # Gettext is needed only to run *this package's own* tests: the end-to-end test resolves bare
       # `gettext`/`ngettext` calls through the injected `import Gettext.Macros`, which Mutare learns
       # by runtime reflection (`macro_exported?`), so `Gettext.Macros` must be loaded. A real

@@ -5,7 +5,9 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.1.0 - Unreleased
+## [Unreleased]
+
+## [0.1.0] - 2026-09-07
 
 Initial public release.
 
@@ -24,3 +26,6 @@ Initial public release.
   against the real `Gettext.Macros` exports in the test suite.
 
 Targets Gettext >= 0.26; degrades to a harmless no-op on older versions.
+
+[Unreleased]: https://github.com/foxbenjaminfox/mutare_gettext/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/foxbenjaminfox/mutare_gettext/releases/tag/v0.1.0
