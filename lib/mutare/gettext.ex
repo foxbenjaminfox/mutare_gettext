@@ -1,48 +1,46 @@
 defmodule Mutare.Gettext do
   @moduledoc """
-  A Mutare **extension** that teaches Mutare to read [Gettext](https://hexdocs.pm/gettext)'s
-  translation macros, so the built-in mutators land on a `use Gettext` module without poisoning the
-  single metamutant build.
+  A Mutare **extension** for [Gettext](https://hexdocs.pm/gettext) macro expansion and argument
+  routing. It configures the built-in mutators to mutate runtime arguments in a `use Gettext`
+  module while preserving the literals required to compile the metamutant.
 
-  It is an **extension, not a mutator**: it produces no mutations, is charged no slot, and never
-  appears in a report — it only makes the built-in mutators' work *land* (the bare `gettext` calls
-  resolve; the right arguments are offered). List it under `:extensions` (in `.mutare.exs` or
-  `Mutare.run/2`):
+  It produces no mutations, occupies no mutator slot, and does not appear in reports.
+  List it under `:extensions` (in `.mutare.exs` or `Mutare.run/2`):
 
       # .mutare.exs
       [extensions: [Mutare.Gettext]]
 
   ## What it does
 
-  Two capability behaviours, one per half of the Gettext problem (see `Mutare.Extension`):
+  The extension implements two capability behaviours (see `Mutare.Extension`):
 
-    * **`c:Mutare.UseExpansion.expand_use/3`** — takes over every `use Gettext` line and injects the
-      `import Gettext.Macros` directive it would. Gettext (>= 0.26) compiles
+    * **`c:Mutare.UseExpansion.expand_use/3`** — supplies `import Gettext.Macros` directly for
+      every `use Gettext` during Mutare's scan. Gettext (>= 0.26) compiles
       `use Gettext, backend: MyApp.Gettext` by *mutating the caller module* to register the backend,
       which raises when Mutare expands it in the scan process (the caller is already compiled), so
-      the `import` never surfaces and the bare `gettext`/`ngettext` calls never resolve. (The
-      `backend:` value is a module alias, not a compile-time literal, so Mutare's static-literal
-      opts gate would skip the expansion regardless.) Re-injecting the import directly is the fix —
-      now the calls resolve and route.
+      `import` is not recovered and the bare `gettext`/`ngettext` calls remain unresolved. (The
+      `backend:` value is a module alias, not a compile-time literal, so Mutare's requirement for
+      static-literal options would prevent expansion regardless.) Supplying the import directly
+      allows Mutare to resolve and route those calls.
 
     * **`c:Mutare.CallRouting.call_routes/0`** — routes each Gettext macro's arguments. The **compile-time
       literal** positions — message id, plural id, domain, context, backend — must never be mutated:
-      they have to stay literals, and splicing a mutation selector there makes the macro raise while
-      expanding and poisons the build. The **runtime** positions — the `ngettext` plural `count` and
-      the interpolation `bindings` — *are* mutated, so a stale plural threshold or a wrong
-      interpolation value still gets caught.
+      inserting a mutation selector there causes a macro expansion error and prevents compilation.
+      The **runtime** positions — the `ngettext` plural `count` and the interpolation `bindings` —
+      *are* mutated, so mutation testing can check whether tests detect changes to plural counts
+      and interpolation values.
 
   This is expressed as a whole-module `:raw` baseline (`{Gettext.Macros, :*, :raw}` — every
   argument of every macro left untouched, the safe default) plus a per-position override for each
-  arity that carries a `count`/`bindings`, routing just those trailing positions `:expression` (a
-  more specific route wins; see `Mutare.CallRouting`). For example `ngettext/4` routes
-  `[:raw, :raw, :expression, :expression]` — the two msgids stay literal, the count and bindings
-  mutate. The overrides are *derived* from the Gettext macro families rather than hand-listed, so a
-  position can't drift (the package's test cross-checks every one against the real `Gettext.Macros`).
+  arity with a `count` or `bindings` argument, routing just those trailing positions `:expression`
+  (a more specific route takes precedence; see `Mutare.CallRouting`). For example `ngettext/4`
+  routes `[:raw, :raw, :expression, :expression]` — the two message ids remain unchanged, while
+  the count and bindings are mutated. The overrides are *derived* from the Gettext macro families;
+  the test suite cross-checks every one against the `Gettext.Macros` exports.
 
-  Targets Gettext **>= 0.26** (the `Gettext.Macros` era). On an older Gettext the injected
-  `import Gettext.Macros` names a module that isn't loaded, so resolution conservatively raws it and
-  the extension degrades to a harmless no-op.
+  Targets Gettext **>= 0.26**, which introduced `Gettext.Macros`. On older versions, the injected
+  `import Gettext.Macros` refers to a module that isn't loaded. Mutare leaves unresolved calls
+  unchanged, so the extension has no effect.
   """
 
   @behaviour Mutare.UseExpansion

@@ -5,10 +5,10 @@
 [![CI](https://github.com/foxbenjaminfox/mutare_gettext/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/foxbenjaminfox/mutare_gettext/actions/workflows/ci.yml)
 [![License](https://img.shields.io/hexpm/l/mutare_gettext.svg)](https://github.com/foxbenjaminfox/mutare_gettext/blob/master/LICENSE)
 
-A [Mutare](https://github.com/foxbenjaminfox/mutare) **extension** that teaches mutation testing to read
-[Gettext](https://hexdocs.pm/gettext). It is an *extension*, not a mutator: it produces no mutations
-of its own — it only makes Mutare's **built-in** mutators land correctly on a `use Gettext` module,
-without poisoning the single metamutant build.
+A [Mutare](https://github.com/foxbenjaminfox/mutare) **extension** for
+[Gettext](https://hexdocs.pm/gettext) macro expansion and argument routing. It produces no mutations
+of its own. It configures Mutare's **built-in** mutators to mutate runtime arguments in a
+`use Gettext` module while preserving the literals required to compile the metamutant.
 
 ## Install
 
@@ -29,28 +29,29 @@ end
 
 ## What it does
 
-Gettext (>= 0.26) is two problems for a single-compile mutation tool:
+Gettext (>= 0.26) requires two accommodations for a single-compile mutation tool:
 
 1. **`use Gettext, backend: MyApp.Gettext`** registers its backend by *mutating the caller module*,
-   so Mutare's in-process `use` expansion raises and never surfaces the `import Gettext.Macros` it
-   injects — the bare `gettext`/`ngettext` calls then never resolve.
+   so Mutare's in-process `use` expansion raises before recovering the injected
+   `import Gettext.Macros` — leaving bare `gettext`/`ngettext` calls unresolved.
 2. A message id (`gettext("Hello")`) must be a **compile-time literal**; splicing a mutation
-   selector there makes the macro raise while expanding and poisons the build.
+   selector there causes a macro expansion error and prevents compilation.
 
 The extension fixes both via Mutare's two extension capability behaviours:
 
-- **`Mutare.UseExpansion`** (`expand_use/3`) takes over every `use Gettext` and injects
-  `import Gettext.Macros`, so the bare calls resolve.
+- **`Mutare.UseExpansion`** (`expand_use/3`) supplies `import Gettext.Macros` directly for
+  every `use Gettext` during Mutare's scan, so the bare calls resolve.
 - **`Mutare.CallRouting`** (`call_routes/0`) routes each macro's arguments per position: the **compile-time literals** (message
-  id, plural id, domain, context, backend) are `:raw` (never mutated → no poison), while the
+  id, plural id, domain, context, backend) are `:raw` (left unchanged), while the
   **runtime** arguments — the `ngettext` plural `count` and the interpolation `bindings` — are
-  `:expression`, so a stale plural threshold or wrong interpolation value still gets caught.
+  `:expression`, so mutation testing can check whether tests detect changes to plural counts
+  and interpolation values.
 
-This is a whole-module `:raw` baseline plus a per-position override for every arity carrying a
-`count`/`bindings`. The overrides are *derived* from the Gettext macro families (so a position
-can't drift); the package's test cross-checks each one against the real `Gettext.Macros`.
+This uses a whole-module `:raw` baseline plus a per-position override for every arity with a
+`count` or `bindings` argument. The overrides are *derived* from the Gettext macro families;
+the test suite cross-checks each one against the `Gettext.Macros` exports.
 
-Targets Gettext **>= 0.26**; on older versions it degrades to a harmless no-op.
+Targets Gettext **>= 0.26**; on older versions the extension has no effect.
 
 ## Development
 
