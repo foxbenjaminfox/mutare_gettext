@@ -1,5 +1,10 @@
 # mutare_gettext
 
+[![Hex.pm](https://img.shields.io/hexpm/v/mutare_gettext.svg)](https://hex.pm/packages/mutare_gettext)
+[![Hexdocs](https://img.shields.io/badge/hexdocs-docs-blue.svg)](https://hexdocs.pm/mutare_gettext)
+[![CI](https://github.com/foxbenjaminfox/mutare_gettext/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/foxbenjaminfox/mutare_gettext/actions/workflows/ci.yml)
+[![License](https://img.shields.io/hexpm/l/mutare_gettext.svg)](https://github.com/foxbenjaminfox/mutare_gettext/blob/master/LICENSE)
+
 A [Mutare](https://github.com/foxbenjaminfox/mutare) **extension** that teaches mutation testing to read
 [Gettext](https://hexdocs.pm/gettext). It is an *extension*, not a mutator: it produces no mutations
 of its own — it only makes Mutare's **built-in** mutators land correctly on a `use Gettext` module,
