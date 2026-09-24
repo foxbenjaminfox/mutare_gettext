@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Mutare 0.4.0 or newer is required** (`{:mutare, "~> 0.4.0"}`). The routes themselves
+  are unchanged: they were already declared by position, which is how Mutare 0.4.0 reads
+  every route.
+
 ## [0.1.0] - 2026-09-07
 
 Initial public release.

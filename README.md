@@ -16,7 +16,7 @@ of its own. It configures Mutare's **built-in** mutators to mutate runtime argum
 # mix.exs
 def deps do
   [
-    {:mutare, "~> 0.1", only: [:dev, :test], runtime: false},
+    {:mutare, "~> 0.4", only: [:dev, :test], runtime: false},
     {:mutare_gettext, "~> 0.1", only: [:dev, :test], runtime: false}
   ]
 end
