@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-26
+
 ### Changed
 
-- **Mutare 0.4.0 or newer is required** (`{:mutare, "~> 0.4.0"}`). The routes themselves
+- **Mutare 0.4.1 or newer is required** (`{:mutare, "~> 0.4.1"}`). The routes themselves
   are unchanged: they were already declared by position, which is how Mutare 0.4.0 reads
   every route.
 
@@ -33,5 +35,6 @@ Initial public release.
 
 Targets Gettext >= 0.26; the extension has no effect on older versions.
 
-[Unreleased]: https://github.com/foxbenjaminfox/mutare_gettext/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/foxbenjaminfox/mutare_gettext/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/foxbenjaminfox/mutare_gettext/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/foxbenjaminfox/mutare_gettext/releases/tag/v0.1.0
