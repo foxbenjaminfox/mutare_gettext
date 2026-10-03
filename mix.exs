@@ -1,7 +1,7 @@
 defmodule Mutare.Gettext.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.2.1"
   @source_url "https://github.com/foxbenjaminfox/mutare_gettext"
 
   def project do
@@ -39,7 +39,7 @@ defmodule Mutare.Gettext.MixProject do
 
   defp deps do
     [
-      {:mutare, "~> 0.4.1"},
+      {:mutare, "~> 0.5.0"},
       # Gettext is needed only to run *this package's own* tests: the end-to-end test resolves bare
       # `gettext`/`ngettext` calls through the injected `import Gettext.Macros`, which Mutare learns
       # by runtime reflection (`macro_exported?`), so `Gettext.Macros` must be loaded. A real
